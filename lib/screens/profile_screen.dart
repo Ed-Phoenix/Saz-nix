@@ -182,7 +182,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Miembro desde ${DateFormat('MMMM yyyy', 'es').format(user.createdAt)}',
+                    'Miembro desde ${DateFormat('MMMM yyyy', 'es_ES').format(user.createdAt)}',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.white.withOpacity(0.8),
@@ -356,7 +356,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       gridDelegate:
                       const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 0.75,
+                        childAspectRatio: 0.68,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
                       ),
