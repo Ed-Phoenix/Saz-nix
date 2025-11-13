@@ -90,17 +90,10 @@ class AuthService {
     try {
       final user = await DatabaseHelper.instance.getUserByEmail(email);
 
-      if (user == null) {
+      if (user == null || user.password != password) {
         return {
           'success': false,
-          'message': 'Usuario no encontrado',
-        };
-      }
-
-      if (user.password != password) {
-        return {
-          'success': false,
-          'message': 'Contraseña incorrecta',
+          'message': 'Correo o contraseña incorrectos',
         };
       }
 

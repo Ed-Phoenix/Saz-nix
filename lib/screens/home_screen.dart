@@ -117,12 +117,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Sazónix',
-          style: GoogleFonts.pacifico(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.restaurant_menu,
+                size: 20,
+                color: Color(0xFFDD2140),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Sazónix',
+              style: GoogleFonts.pacifico(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
         backgroundColor: const Color(0xFFDD2140),
         foregroundColor: Colors.white,
