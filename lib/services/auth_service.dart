@@ -1,6 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import 'database_helper.dart';
+import 'password_hasher.dart';
+
+// El hash tarda unos cientos de milisegundos a propósito (así se frena la
+// fuerza bruta). Se calcula en otro isolate con compute() para no congelar
+// la interfaz mientras tanto.
+bool _verifyPassword((String, String) args) =>
+    PasswordHasher.verify(args.$1, args.$2);
 
 class AuthService {
   static final AuthService instance = AuthService._init();
@@ -56,11 +64,11 @@ class AuthService {
         };
       }
 
-      // Crear usuario
+      // Crear usuario. Solo se guarda el hash, nunca la contraseña.
       final user = User(
         username: username,
         email: email,
-        password: password, // En producción, usar hash
+        password: await compute(PasswordHasher.hash, password),
       );
 
       _currentUser = await DatabaseHelper.instance.createUser(user);
@@ -88,13 +96,22 @@ class AuthService {
     required String password,
   }) async {
     try {
-      final user = await DatabaseHelper.instance.getUserByEmail(email);
+      var user = await DatabaseHelper.instance.getUserByEmail(email);
 
-      if (user == null || user.password != password) {
+      if (user == null || !await _passwordMatches(password, user.password)) {
         return {
           'success': false,
           'message': 'Correo o contraseña incorrectos',
         };
+      }
+
+      // Cuentas creadas antes de usar hashes: al iniciar sesión con la
+      // contraseña correcta, se reemplaza el texto plano por su hash.
+      if (!PasswordHasher.isHash(user.password)) {
+        user = user.copyWith(
+          password: await compute(PasswordHasher.hash, password),
+        );
+        await DatabaseHelper.instance.updateUser(user);
       }
 
       _currentUser = user;
@@ -114,6 +131,18 @@ class AuthService {
         'message': 'Error al iniciar sesión: $e',
       };
     }
+  }
+
+  // Compara la contraseña escrita con la guardada, sea hash o texto plano
+  // heredado de versiones anteriores.
+  Future<bool> _passwordMatches(String password, String stored) async {
+    if (PasswordHasher.isHash(stored)) {
+      return compute(_verifyPassword, (password, stored));
+    }
+    return PasswordHasher.constantTimeEquals(
+      password.codeUnits,
+      stored.codeUnits,
+    );
   }
 
   // Cerrar sesión
